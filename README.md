@@ -25,7 +25,12 @@ ghcr.io/<owner>/flipperone-dev:latest
 ghcr.io/<owner>/flipperone-rootfs:latest
 ```
 
-Each image also gets a commit SHA tag.
+Each image also gets a commit SHA tag. Version tags publish matching image tags, for example:
+
+```text
+ghcr.io/<owner>/flipperone-dev:v0.1.0
+ghcr.io/<owner>/flipperone-rootfs:v0.1.0
+```
 
 ## Repository Layout
 
@@ -139,11 +144,29 @@ Stop lab containers:
 
 ## GitHub Actions
 
-The workflow at `.github/workflows/build-images.yml` builds and pushes both images to GHCR on `main` pushes and manual runs.
+The workflow at `.github/workflows/build-images.yml` builds and pushes both images to GHCR on `main` pushes, version tag pushes, and manual runs.
 
 It uses `ubuntu-24.04-arm` so the images and rootfs are built natively for `linux/arm64`.
 
 The rootfs artifact step runs the builder container with `--privileged` because `debos` and `systemd-nspawn` need mount and tmpfs capabilities while building the rootfs. The final `flipperone-dev` and `flipperone-rootfs` runtime images do not need privileged mode.
+
+Create a version release by pushing a tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+That publishes:
+
+```text
+ghcr.io/<owner>/flipperone-dev:v0.1.0
+ghcr.io/<owner>/flipperone-rootfs:v0.1.0
+ghcr.io/<owner>/flipperone-dev:latest
+ghcr.io/<owner>/flipperone-rootfs:latest
+```
+
+GitHub Packages may default to private visibility depending on repository and organization settings. Change the package visibility in GitHub if the images should be public.
 
 ## Troubleshooting
 
