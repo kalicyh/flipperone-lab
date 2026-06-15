@@ -1,35 +1,25 @@
 FROM mirror.gcr.io/library/debian:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV DISPLAY=:1
 ENV FLIPPER_UI_PORT=8899
-ENV NOVNC_PORT=6080
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
-    chromium \
     curl \
-    dbus-x11 \
     git \
     iproute2 \
     nodejs \
-    novnc \
-    openbox \
     procps \
-    websockify \
-    x11vnc \
-    xauth \
-    xvfb \
  && rm -rf /var/lib/apt/lists/*
 
 COPY upstream/flipperone-testing/ /flipperone-testing/
 RUN ln -sfn /flipperone-testing/fake-flipctl2 /flipperone-testing/active-flipctl
 
-COPY context/common/flipper-vnc-entrypoint.sh /usr/local/bin/flipper-vnc-entrypoint
-RUN chmod +x /usr/local/bin/flipper-vnc-entrypoint
+COPY context/common/flipper-ui-entrypoint.sh /usr/local/bin/flipper-ui-entrypoint
+RUN chmod +x /usr/local/bin/flipper-ui-entrypoint
 
-EXPOSE 6080 8899
+EXPOSE 8899
 
-ENTRYPOINT ["/usr/local/bin/flipper-vnc-entrypoint"]
+ENTRYPOINT ["/usr/local/bin/flipper-ui-entrypoint"]

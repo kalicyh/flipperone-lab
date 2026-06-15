@@ -50,7 +50,7 @@ Apple `container` is useful here for ARM64 Linux userspace access. It is not a f
 
 The practical split is:
 
-- Use `flipperone-dev` to get a quick VNC-accessible UI.
+- Use `flipperone-dev` to get a quick browser-accessible UI.
 - Use `flipperone-rootfs` to inspect a userspace that is closer to the Flipper One Linux rootfs.
 
 ## Known Limits

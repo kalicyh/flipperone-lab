@@ -128,7 +128,7 @@ jobs:
           mkdir -p .build/rootfs-image-context/artifacts .build/rootfs-image-context/context/common
           cp Containerfile.rootfs .build/rootfs-image-context/Dockerfile
           cp artifacts/debian-ospack.tar.gz .build/rootfs-image-context/artifacts/debian-ospack.tar.gz
-          cp context/common/flipper-vnc-entrypoint.sh .build/rootfs-image-context/context/common/flipper-vnc-entrypoint.sh
+          cp context/common/flipper-ui-entrypoint.sh .build/rootfs-image-context/context/common/flipper-ui-entrypoint.sh
 
       - name: Build and push flipperone-rootfs
         uses: docker/build-push-action@v6
