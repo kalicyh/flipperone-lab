@@ -13,6 +13,86 @@
     "width": 892,
     "height": 501
   },
+  "stateOverlays": [
+    {
+      "id": "screen-state-188",
+      "label": "Screen state 188",
+      "layer": "screen",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/188-d7d5738ec7240845a25e701d8ac50c235c4213ae.png",
+      "rect": {
+        "x": 884,
+        "y": 292,
+        "width": 896,
+        "height": 504
+      }
+    },
+    {
+      "id": "device-state-003",
+      "label": "Device state 003",
+      "layer": "device",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/003-f4202fc30bfeebd449ddc044be0c855999b0c40b.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2622,
+        "height": 1206
+      }
+    },
+    {
+      "id": "device-state-004",
+      "label": "Device state 004",
+      "layer": "device",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/004-5626624de3ea83aa66c50c7dc813881c3a2b586c.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2622,
+        "height": 1206
+      }
+    },
+    {
+      "id": "device-state-008",
+      "label": "Device state 008",
+      "layer": "device",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/008-02ab2756fbc141a9b0a7dcc470231f3878fec068.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2622,
+        "height": 1206
+      }
+    },
+    {
+      "id": "device-state-011",
+      "label": "Device state 011",
+      "layer": "device",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/011-9127c41b793a59d88314615f2e5173662796209e.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2622,
+        "height": 1206
+      }
+    },
+    {
+      "id": "device-state-012",
+      "label": "Device state 012",
+      "layer": "device",
+      "enabled": true,
+      "image": "/lab-assets/protopie/images/state/012-4b8e660e3df1db2183bccc77b5c3548a92ad7050.png",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 2622,
+        "height": 1206
+      }
+    }
+  ],
   "fit": {
     "viewportScale": 0.98,
     "maxWidth": "100vw",

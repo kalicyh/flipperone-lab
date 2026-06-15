@@ -51,9 +51,31 @@
             z-index: 2;
         }
 
+        #state-overlays {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .state-overlay {
+            position: absolute;
+            object-fit: fill;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .state-overlay[data-layer="screen"] {
+            z-index: 1;
+        }
+
+        .state-overlay[data-layer="device"] {
+            z-index: 2;
+        }
+
         .key-hotspot {
             position: absolute;
-            z-index: 3;
+            z-index: 4;
             display: block;
             padding: 0;
             border: 0;
@@ -88,6 +110,7 @@
     <main id="shell" aria-label="Flipper One">
         <iframe id="screen-frame" title="Flipper One UI" src="/__flipper_ui.html"></iframe>
         <img id="shell-overlay" alt="" src="/lab-assets/protopie/flipperone-shell-overlay.png">
+        <div id="state-overlays" aria-hidden="true"></div>
     </main>
 
     <script src="/lab-overlay/lab-browser-runtime.js"></script>
@@ -102,10 +125,13 @@
                 overlayImage: '/lab-assets/protopie/flipperone-shell-overlay.png',
                 overlaySize: { width: 2622, height: 1206 },
                 screen: { x: 884, y: 292, width: 892, height: 501 },
+                stateOverlays: [],
                 fit: { viewportScale: 0.98, maxWidth: '100vw', maxHeight: '100vh' },
                 background: '#000000'
             };
             var heldKeys = {};
+            var currentConfig = null;
+            var stateStorageKey = 'flipperone.lab.stateOverlays.v1';
 
             function mergeConfig(config) {
                 config = config || {};
@@ -116,6 +142,7 @@
                     overlayImage: config.overlayImage || defaults.overlayImage,
                     overlaySize: Object.assign({}, defaults.overlaySize, config.overlaySize || {}),
                     screen: Object.assign({}, defaults.screen, config.screen || {}),
+                    stateOverlays: Array.isArray(config.stateOverlays) ? config.stateOverlays : defaults.stateOverlays,
                     fit: Object.assign({}, defaults.fit, config.fit || {}),
                     background: config.background || defaults.background
                 };
@@ -255,8 +282,62 @@
                 });
             }
 
+            function loadStateOverlayPrefs() {
+                try {
+                    var prefs = JSON.parse(localStorage.getItem(stateStorageKey) || '{}');
+                    return prefs && typeof prefs === 'object' && !Array.isArray(prefs) ? prefs : {};
+                } catch (error) {
+                    return {};
+                }
+            }
+
+            function isStateOverlayEnabled(overlay, prefs) {
+                if (!overlay || !overlay.id) return false;
+                if (Object.prototype.hasOwnProperty.call(prefs, overlay.id)) {
+                    return prefs[overlay.id] !== false;
+                }
+                return overlay.enabled !== false;
+            }
+
+            function clearStateOverlays() {
+                var container = document.getElementById('state-overlays');
+                if (container) container.textContent = '';
+            }
+
+            function applyStateOverlays(config) {
+                var container = document.getElementById('state-overlays');
+                if (!container) return;
+                container.textContent = '';
+
+                var overlays = Array.isArray(config.stateOverlays) ? config.stateOverlays : [];
+                var prefs = loadStateOverlayPrefs();
+                var defaultSize = config.overlaySize || defaults.overlaySize;
+
+                overlays.forEach(function(overlay) {
+                    if (!overlay || !overlay.image || !isStateOverlayEnabled(overlay, prefs)) return;
+
+                    var baseSize = Object.assign({}, defaultSize, overlay.baseSize || {});
+                    var baseWidth = Number(baseSize.width) || defaults.overlaySize.width;
+                    var baseHeight = Number(baseSize.height) || defaults.overlaySize.height;
+                    var rect = overlay.rect || { x: 0, y: 0, width: baseWidth, height: baseHeight };
+                    var image = document.createElement('img');
+
+                    image.className = 'state-overlay';
+                    image.alt = '';
+                    image.src = overlay.image;
+                    image.dataset.stateId = overlay.id;
+                    image.dataset.layer = overlay.layer || 'device';
+                    image.style.left = ((Number(rect.x) || 0) / baseWidth * 100) + '%';
+                    image.style.top = ((Number(rect.y) || 0) / baseHeight * 100) + '%';
+                    image.style.width = ((Number(rect.width) || baseWidth) / baseWidth * 100) + '%';
+                    image.style.height = ((Number(rect.height) || baseHeight) / baseHeight * 100) + '%';
+                    container.appendChild(image);
+                });
+            }
+
             function applyConfig(rawConfig) {
                 var config = mergeConfig(rawConfig);
+                currentConfig = config;
                 if (!config.enabled) {
                     window.location.replace(config.uiFrame);
                     return;
@@ -279,6 +360,7 @@
                 frame.src = config.uiFrame;
                 overlay.src = config.overlayImage;
                 layoutShell(config);
+                applyStateOverlays(config);
                 window.addEventListener('resize', function() { layoutShell(config); });
                 frame.addEventListener('load', focusFrame);
                 window.addEventListener('click', focusFrameFromShellClick);
@@ -295,6 +377,12 @@
 
             window.addEventListener('blur', releaseHeldKeys);
             window.addEventListener('pagehide', releaseHeldKeys);
+            window.addEventListener('storage', function(event) {
+                if (event.key === stateStorageKey && currentConfig) applyStateOverlays(currentConfig);
+            });
+            document.addEventListener('flipper-lab-state-overlays-changed', function() {
+                if (currentConfig) applyStateOverlays(currentConfig);
+            });
 
             fetch('/lab-overlay/device-shell.json?cache=' + Date.now(), { cache: 'no-store' })
                 .then(function(response) {

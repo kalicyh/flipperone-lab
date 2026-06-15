@@ -153,11 +153,22 @@ Key fields:
   "overlayImage": "/lab-assets/protopie/flipperone-shell-overlay.png",
   "overlaySize": { "width": 2622, "height": 1206 },
   "screen": { "x": 884, "y": 292, "width": 892, "height": 501 },
+  "stateOverlays": [
+    {
+      "id": "screen-state-188",
+      "label": "Screen state 188",
+      "layer": "screen",
+      "image": "/lab-assets/protopie/images/state/188-d7d5738ec7240845a25e701d8ac50c235c4213ae.png",
+      "rect": { "x": 884, "y": 292, "width": 896, "height": 504 }
+    }
+  ],
   "fit": { "viewportScale": 0.98, "maxWidth": "100vw", "maxHeight": "100vh" }
 }
 ```
 
 Set `"enabled": false` to jump straight to the raw UI. Replace `assets/flipperone-protopie/flipperone-shell-overlay.png` or point `overlayImage` at another file under `/lab-assets/protopie/` to test another shell asset without rebuilding.
+
+`stateOverlays` adds optional transparent state layers on top of the device shell. Full-device state layers use the same `2622x1206` coordinate space as the shell overlay. Screen-only layers use the same coordinate space but smaller `rect` values. The API panel's `States` tab can toggle these layers at runtime, and defaults to all configured layers enabled.
 
 Button hit areas and browser key dispatch are stored in:
 

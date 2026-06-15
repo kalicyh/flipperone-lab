@@ -3,6 +3,7 @@
 
     var SOURCE = 'flipperone-lab-api';
     var HOOK_STORAGE_KEY = 'flipperone.lab.apiHooks.v2';
+    var STATE_STORAGE_KEY = 'flipperone.lab.stateOverlays.v1';
     var MAX_LOGS = 300;
     var isTopWindow = window.top === window;
 
@@ -21,15 +22,18 @@
     var systemLogTimer = null;
     var activeAudio = null;
     var currentVolume = 0.7;
+    var stateOverlays = [];
 
     var panel = {
         root: null,
         networkTab: null,
         hooksTab: null,
+        statesTab: null,
         logList: null,
         logDetail: null,
         hookList: null,
         hookForm: null,
+        stateList: null,
         activeTab: 'logs'
     };
 
@@ -191,6 +195,60 @@
         try {
             localStorage.setItem(HOOK_STORAGE_KEY, JSON.stringify(hooks));
         } catch (error) {}
+    }
+
+    function loadStateOverlayPrefs() {
+        try {
+            var prefs = JSON.parse(localStorage.getItem(STATE_STORAGE_KEY) || '{}');
+            return prefs && typeof prefs === 'object' && !Array.isArray(prefs) ? prefs : {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    function saveStateOverlayPrefs(prefs) {
+        try {
+            localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(prefs || {}));
+        } catch (error) {}
+    }
+
+    function isStateOverlayEnabled(overlay) {
+        var prefs = loadStateOverlayPrefs();
+        if (!overlay || !overlay.id) return false;
+        if (Object.prototype.hasOwnProperty.call(prefs, overlay.id)) {
+            return prefs[overlay.id] !== false;
+        }
+        return overlay.enabled !== false;
+    }
+
+    function dispatchStateOverlayChange() {
+        try {
+            document.dispatchEvent(new CustomEvent('flipper-lab-state-overlays-changed'));
+        } catch (error) {
+            try {
+                var event = document.createEvent('Event');
+                event.initEvent('flipper-lab-state-overlays-changed', true, true);
+                document.dispatchEvent(event);
+            } catch (ignored) {}
+        }
+    }
+
+    function setStateOverlayEnabled(id, enabled) {
+        var prefs = loadStateOverlayPrefs();
+        prefs[id] = !!enabled;
+        saveStateOverlayPrefs(prefs);
+        dispatchStateOverlayChange();
+        renderStates();
+    }
+
+    function setAllStateOverlaysEnabled(enabled) {
+        var prefs = loadStateOverlayPrefs();
+        stateOverlays.forEach(function(overlay) {
+            if (overlay && overlay.id) prefs[overlay.id] = !!enabled;
+        });
+        saveStateOverlayPrefs(prefs);
+        dispatchStateOverlayChange();
+        renderStates();
     }
 
     function requestUrl(input) {
@@ -651,6 +709,13 @@
             '.flab-api-form input,.flab-api-form select,.flab-api-form textarea{background:#0b0f13;color:#eef3f7;border:1px solid #38414c;border-radius:5px;padding:7px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}',
             '.flab-api-form textarea{grid-column:2/5;min-height:150px;resize:vertical}',
             '.flab-api-form .flab-api-form-actions{grid-column:2/5;display:flex;gap:8px;align-items:center}',
+            '.flab-api-states{min-width:0;width:100%;flex-direction:column;overflow:auto}',
+            '.flab-api-state-tools{position:sticky;top:0;z-index:1;display:flex;gap:8px;padding:8px;border-bottom:1px solid #282f38;background:#151a20}',
+            '.flab-api-state-tools .flab-api-action{width:112px;padding:6px 7px}',
+            '.flab-api-state-row{display:grid;grid-template-columns:28px minmax(180px,1fr) 86px minmax(220px,2fr);gap:10px;align-items:center;border-bottom:1px solid #20262d;padding:9px 12px;color:#dce3ea;font:12px system-ui,sans-serif}',
+            '.flab-api-state-row:hover{background:#18202a}',
+            '.flab-api-state-row input{width:16px;height:16px;margin:0}',
+            '.flab-api-state-path{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#96a2af;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}',
             '.flab-api-error{color:#ff8d8d;font:12px system-ui,sans-serif}'
         ].join('');
         document.head.appendChild(style);
@@ -667,6 +732,7 @@
         panel.activeTab = tab;
         if (panel.networkTab) panel.networkTab.dataset.active = tab === 'logs' ? '1' : '0';
         if (panel.hooksTab) panel.hooksTab.dataset.active = tab === 'hooks' ? '1' : '0';
+        if (panel.statesTab) panel.statesTab.dataset.active = tab === 'states' ? '1' : '0';
         Array.prototype.forEach.call(document.querySelectorAll('.flab-api-tab'), function(node) {
             node.setAttribute('aria-selected', node.dataset.tab === tab ? 'true' : 'false');
         });
@@ -707,6 +773,20 @@
         });
     }
 
+    function loadStateOverlays() {
+        if (!isTopWindow || !NativeFetch) return;
+        NativeFetch('/lab-overlay/device-shell.json?cache=' + Date.now(), { cache: 'no-store' }).then(function(response) {
+            if (!response.ok) throw new Error('device-shell.json: ' + response.status);
+            return response.json();
+        }).then(function(config) {
+            stateOverlays = Array.isArray(config.stateOverlays) ? config.stateOverlays : [];
+            renderStates();
+        }, function() {
+            stateOverlays = [];
+            renderStates();
+        });
+    }
+
     function startSystemLogPolling() {
         if (!isTopWindow || systemLogTimer) return;
         refreshSystemLogs();
@@ -737,8 +817,9 @@
         title.textContent = 'Lab API';
         bar.appendChild(title);
 
-        ['logs', 'hooks'].forEach(function(tab) {
-            bar.appendChild(createButton(tab === 'logs' ? 'Logs' : 'Hooks', 'flab-api-tab', function() {
+        ['logs', 'hooks', 'states'].forEach(function(tab) {
+            var labels = { logs: 'Logs', hooks: 'Hooks', states: 'States' };
+            bar.appendChild(createButton(labels[tab], 'flab-api-tab', function() {
                 setActiveTab(tab);
             }));
             bar.lastChild.dataset.tab = tab;
@@ -749,6 +830,7 @@
         bar.appendChild(spacer);
         bar.appendChild(createButton('Refresh', 'flab-api-action', function() {
             refreshSystemLogs();
+            loadStateOverlays();
         }));
         bar.appendChild(createButton('Close', 'flab-api-action', function() {
             setPanelOpen(false);
@@ -775,10 +857,18 @@
         hooksBody.appendChild(panel.hookForm);
         root.appendChild(hooksBody);
 
+        var statesBody = document.createElement('div');
+        statesBody.className = 'flab-api-body flab-api-states';
+        panel.statesTab = statesBody;
+        panel.stateList = document.createElement('div');
+        statesBody.appendChild(panel.stateList);
+        root.appendChild(statesBody);
+
         document.body.appendChild(root);
         setActiveTab('logs');
         renderNetwork();
         renderHooks();
+        loadStateOverlays();
         startSystemLogPolling();
     }
 
@@ -836,6 +926,61 @@
         });
 
         renderHookForm();
+    }
+
+    function renderStates() {
+        if (!panel.stateList) return;
+        panel.stateList.textContent = '';
+
+        var tools = document.createElement('div');
+        tools.className = 'flab-api-state-tools';
+        tools.appendChild(createButton('All On', 'flab-api-action', function() {
+            setAllStateOverlaysEnabled(true);
+        }));
+        tools.appendChild(createButton('All Off', 'flab-api-action', function() {
+            setAllStateOverlaysEnabled(false);
+        }));
+        panel.stateList.appendChild(tools);
+
+        if (!stateOverlays.length) {
+            var empty = document.createElement('div');
+            empty.className = 'flab-api-state-row flab-api-muted';
+            empty.textContent = 'No state overlays configured.';
+            panel.stateList.appendChild(empty);
+            return;
+        }
+
+        stateOverlays.forEach(function(overlay) {
+            if (!overlay || !overlay.id) return;
+
+            var row = document.createElement('label');
+            row.className = 'flab-api-state-row';
+            row.title = overlay.image || '';
+
+            var input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = isStateOverlayEnabled(overlay);
+            input.addEventListener('change', function() {
+                setStateOverlayEnabled(overlay.id, input.checked);
+            });
+
+            var label = document.createElement('span');
+            label.textContent = overlay.label || overlay.id;
+
+            var layer = document.createElement('span');
+            layer.className = 'flab-api-muted';
+            layer.textContent = overlay.layer || 'device';
+
+            var path = document.createElement('span');
+            path.className = 'flab-api-state-path';
+            path.textContent = overlay.image || '';
+
+            row.appendChild(input);
+            row.appendChild(label);
+            row.appendChild(layer);
+            row.appendChild(path);
+            panel.stateList.appendChild(row);
+        });
     }
 
     function field(name, labelText, value, type) {
