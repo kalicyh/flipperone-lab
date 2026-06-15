@@ -1,0 +1,15 @@
+{
+  "image": {
+    "width": 2622,
+    "height": 1206
+  },
+  "screen_transparent_bbox_rough": {
+    "x": 884,
+    "y": 292,
+    "width": 892,
+    "height": 501,
+    "right": 1775,
+    "bottom": 792,
+    "transparent_pixels": 446167
+  }
+}

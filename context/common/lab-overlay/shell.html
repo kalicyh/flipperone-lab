@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipper One Lab</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            background: var(--shell-background, #000);
+            overflow: hidden;
+        }
+
+        body {
+            display: grid;
+            place-items: center;
+        }
+
+        #shell {
+            position: relative;
+            width: 100vw;
+            height: auto;
+        }
+
+        #screen-frame {
+            position: absolute;
+            left: var(--screen-left, 33.7147%);
+            top: var(--screen-top, 24.2123%);
+            width: var(--screen-frame-width, 34.0198%);
+            height: var(--screen-frame-height, 41.5423%);
+            border: 0;
+            background: #000;
+            z-index: 1;
+        }
+
+        #shell-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            user-select: none;
+            pointer-events: none;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <main id="shell" aria-label="Flipper One">
+        <iframe id="screen-frame" title="Flipper One UI" src="/__flipper_ui.html"></iframe>
+        <img id="shell-overlay" alt="" src="/lab-assets/protopie/flipperone-shell-overlay.png">
+    </main>
+
+    <script>
+        (function() {
+            'use strict';
+
+            var defaults = {
+                enabled: true,
+                title: 'Flipper One Lab',
+                uiFrame: '/__flipper_ui.html',
+                overlayImage: '/lab-assets/protopie/flipperone-shell-overlay.png',
+                overlaySize: { width: 2622, height: 1206 },
+                screen: { x: 884, y: 292, width: 892, height: 501 },
+                fit: { viewportScale: 0.98, maxWidth: '100vw', maxHeight: '100vh' },
+                background: '#000000'
+            };
+
+            function mergeConfig(config) {
+                config = config || {};
+                return {
+                    enabled: config.enabled !== false,
+                    title: config.title || defaults.title,
+                    uiFrame: config.uiFrame || defaults.uiFrame,
+                    overlayImage: config.overlayImage || defaults.overlayImage,
+                    overlaySize: Object.assign({}, defaults.overlaySize, config.overlaySize || {}),
+                    screen: Object.assign({}, defaults.screen, config.screen || {}),
+                    fit: Object.assign({}, defaults.fit, config.fit || {}),
+                    background: config.background || defaults.background
+                };
+            }
+
+            function setVar(name, value) {
+                document.documentElement.style.setProperty(name, String(value));
+            }
+
+            function resolveLength(value, axis) {
+                if (typeof value === 'number') return value;
+                var text = String(value || '').trim();
+                var number = parseFloat(text);
+                if (!Number.isFinite(number)) return axis === 'height' ? window.innerHeight : window.innerWidth;
+                if (text.endsWith('vw')) return window.innerWidth * number / 100;
+                if (text.endsWith('vh')) return window.innerHeight * number / 100;
+                if (text.endsWith('px')) return number;
+                return number;
+            }
+
+            function layoutShell(config) {
+                var shell = document.getElementById('shell');
+                var shellWidth = Number(config.overlaySize.width) || defaults.overlaySize.width;
+                var shellHeight = Number(config.overlaySize.height) || defaults.overlaySize.height;
+                var scale = Number(config.fit.viewportScale) || defaults.fit.viewportScale;
+                var maxWidth = resolveLength(config.fit.maxWidth, 'width') * scale;
+                var maxHeight = resolveLength(config.fit.maxHeight, 'height') * scale;
+                var aspect = shellWidth / shellHeight;
+                var width = Math.min(maxWidth, maxHeight * aspect);
+                var height = width / aspect;
+
+                shell.style.width = width + 'px';
+                shell.style.height = height + 'px';
+            }
+
+            function focusFrame() {
+                var frame = document.getElementById('screen-frame');
+                try {
+                    frame.focus();
+                    if (frame.contentWindow) frame.contentWindow.focus();
+                } catch (e) {}
+            }
+
+            function applyConfig(rawConfig) {
+                var config = mergeConfig(rawConfig);
+                if (!config.enabled) {
+                    window.location.replace(config.uiFrame);
+                    return;
+                }
+
+                var shellWidth = Number(config.overlaySize.width) || defaults.overlaySize.width;
+                var shellHeight = Number(config.overlaySize.height) || defaults.overlaySize.height;
+                var screen = config.screen;
+                var fit = config.fit;
+
+                document.title = config.title;
+                setVar('--screen-left', ((Number(screen.x) || defaults.screen.x) / shellWidth * 100) + '%');
+                setVar('--screen-top', ((Number(screen.y) || defaults.screen.y) / shellHeight * 100) + '%');
+                setVar('--screen-frame-width', ((Number(screen.width) || defaults.screen.width) / shellWidth * 100) + '%');
+                setVar('--screen-frame-height', ((Number(screen.height) || defaults.screen.height) / shellHeight * 100) + '%');
+                setVar('--shell-background', config.background);
+
+                var frame = document.getElementById('screen-frame');
+                var overlay = document.getElementById('shell-overlay');
+                frame.src = config.uiFrame;
+                overlay.src = config.overlayImage;
+                layoutShell(config);
+                window.addEventListener('resize', function() { layoutShell(config); });
+                frame.addEventListener('load', focusFrame);
+                window.addEventListener('click', focusFrame);
+                focusFrame();
+            }
+
+            fetch('/lab-overlay/device-shell.json?cache=' + Date.now(), { cache: 'no-store' })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('device-shell.json: ' + response.status);
+                    return response.json();
+                })
+                .then(applyConfig)
+                .catch(function() {
+                    applyConfig(defaults);
+                });
+        }());
+    </script>
+</body>
+</html>

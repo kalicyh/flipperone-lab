@@ -1,0 +1,18 @@
+{
+  "pageUrl": "https://cloud.protopie.io/p/8b3ce95e854c87471d14d3a0",
+  "title": "Flipper One | ProtoPie Cloud",
+  "responses": [],
+  "domAssets": {
+    "urls": [],
+    "perf": [
+      {
+        "name": "https://cloud.protopie.io/favicon.ico",
+        "initiatorType": "other",
+        "transferSize": 33288,
+        "encodedBodySize": 32988,
+        "decodedBodySize": 32988
+      }
+    ]
+  },
+  "errors": []
+}

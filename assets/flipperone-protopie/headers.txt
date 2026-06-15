@@ -1,0 +1,9 @@
+HTTP/2 200 
+date: Mon, 15 Jun 2026 13:53:58 GMT
+content-type: text/html; charset=utf-8
+content-length: 3780
+server: nginx
+etag: W/"ec4-Zoy6s/zvNpKp/H1WGfhLgBu+aE4"
+x-xss-protection: 1; mode=block
+strict-transport-security: max-age=15768000
+

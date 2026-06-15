@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "title": "Flipper One Lab",
+  "uiFrame": "/__flipper_ui.html",
+  "overlayImage": "/lab-assets/protopie/flipperone-shell-overlay.png",
+  "overlaySize": {
+    "width": 2622,
+    "height": 1206
+  },
+  "screen": {
+    "x": 884,
+    "y": 292,
+    "width": 892,
+    "height": 501
+  },
+  "fit": {
+    "viewportScale": 0.98,
+    "maxWidth": "100vw",
+    "maxHeight": "100vh"
+  },
+  "background": "#000000"
+}

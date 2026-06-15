@@ -2,6 +2,7 @@
 set -euo pipefail
 
 export FLIPPER_UI_PORT="${FLIPPER_UI_PORT:-8899}"
+export FLIPPER_DEVICE_SHELL="${FLIPPER_DEVICE_SHELL:-1}"
 
 log() {
     printf '[flipper-ui] %s\n' "$*"
@@ -12,9 +13,50 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+prepare_device_shell() {
+    local ui_dir="$1"
+    local overlay_dir="${FLIPPER_OVERLAY_DIR:-/opt/flipperone-lab-overlay}"
+    local overlay_config_dir="${FLIPPER_OVERLAY_CONFIG_DIR:-/opt/flipperone-lab-config}"
+    local lab_assets_dir="${FLIPPER_LAB_ASSETS_DIR:-/opt/flipperone-lab-assets}"
+
+    if [ "${FLIPPER_DEVICE_SHELL}" = "0" ]; then
+        log "device shell disabled"
+        return
+    fi
+
+    if [ ! -f "${ui_dir}/index.html" ] || [ ! -f "${overlay_dir}/shell.html" ]; then
+        log "device shell unavailable; using raw UI"
+        return
+    fi
+
+    log "installing device shell wrapper"
+
+    awk '
+        /<\/head>/ && !done {
+            print "    <link rel=\"stylesheet\" href=\"/lab-overlay/flipper-ui-fit.css\">";
+            done = 1
+        }
+        { print }
+    ' "${ui_dir}/index.html" > "${ui_dir}/__flipper_ui.html"
+
+    rm -rf "${ui_dir}/lab-overlay" "${ui_dir}/lab-assets"
+    mkdir -p "${ui_dir}/lab-overlay"
+
+    ln -sfn "${overlay_dir}/flipper-ui-fit.css" "${ui_dir}/lab-overlay/flipper-ui-fit.css"
+    if [ -f "${overlay_config_dir}/device-shell.json" ]; then
+        ln -sfn "${overlay_config_dir}/device-shell.json" "${ui_dir}/lab-overlay/device-shell.json"
+    else
+        ln -sfn "${overlay_dir}/device-shell.json" "${ui_dir}/lab-overlay/device-shell.json"
+    fi
+    ln -sfn "${lab_assets_dir}" "${ui_dir}/lab-assets"
+
+    cp "${overlay_dir}/shell.html" "${ui_dir}/index.html"
+}
+
 touch /tmp/fake-flipctl.log
 
 if [ -d /flipperone-testing/active-flipctl ]; then
+    prepare_device_shell /flipperone-testing/active-flipctl
     log "starting fake FlipCTL on port ${FLIPPER_UI_PORT}"
     (
         cd /flipperone-testing/active-flipctl

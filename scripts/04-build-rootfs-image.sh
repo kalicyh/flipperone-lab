@@ -13,10 +13,12 @@ test -f artifacts/debian-ospack.tar.gz || {
 }
 
 rm -rf "${BUILD_CONTEXT}"
-mkdir -p "${BUILD_CONTEXT}/artifacts" "${BUILD_CONTEXT}/context/common"
+mkdir -p "${BUILD_CONTEXT}/artifacts" "${BUILD_CONTEXT}/context/common" "${BUILD_CONTEXT}/assets"
 cp "${ROOT_DIR}/Containerfile.rootfs" "${BUILD_CONTEXT}/Dockerfile"
 ln "${ROOT_DIR}/artifacts/debian-ospack.tar.gz" "${BUILD_CONTEXT}/artifacts/debian-ospack.tar.gz"
 cp "${ROOT_DIR}/context/common/flipper-ui-entrypoint.sh" "${BUILD_CONTEXT}/context/common/flipper-ui-entrypoint.sh"
+cp -R "${ROOT_DIR}/context/common/lab-overlay" "${BUILD_CONTEXT}/context/common/lab-overlay"
+cp -R "${ROOT_DIR}/assets/flipperone-protopie" "${BUILD_CONTEXT}/assets/flipperone-protopie"
 
 container build \
     --platform linux/arm64 \

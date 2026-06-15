@@ -19,6 +19,8 @@ RUN if [ -d /flipperone-testing/fake-flipctl2 ]; then \
     fi
 
 COPY context/common/flipper-ui-entrypoint.sh /usr/local/bin/flipper-ui-entrypoint
+COPY context/common/lab-overlay/ /opt/flipperone-lab-overlay/
+COPY assets/flipperone-protopie/ /opt/flipperone-lab-assets/protopie/
 RUN chmod +x /usr/local/bin/flipper-ui-entrypoint
 
 EXPOSE 8899
