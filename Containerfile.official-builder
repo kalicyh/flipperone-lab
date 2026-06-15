@@ -1,0 +1,34 @@
+FROM mirror.gcr.io/library/debian:trixie
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+RUN printf 'path-exclude=/usr/share/doc/*\npath-exclude=/usr/share/man/*\npath-exclude=/usr/share/locale/*\n' > /etc/dpkg/dpkg.cfg.d/01_nodoc \
+ && printf '#!/bin/sh\nexit 101\n' > /usr/sbin/policy-rc.d \
+ && chmod +x /usr/sbin/policy-rc.d
+
+RUN dpkg --add-architecture arm64 \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    debos \
+    git \
+    golang \
+    libglib2.0-dev \
+    libostree-dev \
+    mmdebstrap \
+    pkg-config \
+    rsync \
+    wget \
+ && go install -v github.com/go-debos/debos/cmd/debos@latest \
+ && install -m 755 /root/go/bin/debos /usr/local/bin/debos \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* /root/go /root/.cache/go-build
+
+WORKDIR /rk3576-linux-build
+COPY src/flipperone-linux-build-scripts/ /rk3576-linux-build/
+RUN sed -i 's/DEBOS="debos"/DEBOS="debos --disable-fakemachine"/' /rk3576-linux-build/build-ospack.sh
+
+ENTRYPOINT ["/bin/bash"]
