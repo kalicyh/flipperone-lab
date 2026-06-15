@@ -144,7 +144,7 @@ Stop lab containers:
 
 ## GitHub Actions
 
-The workflow at `.github/workflows/build-images.yml` builds and pushes both images to GHCR on `main` pushes, version tag pushes, and manual runs.
+The workflow at `.github/workflows/build-images.yml` builds and pushes both images to GHCR on version tag pushes and manual runs.
 
 It uses `ubuntu-24.04-arm` so the images and rootfs are built natively for `linux/arm64`.
 
