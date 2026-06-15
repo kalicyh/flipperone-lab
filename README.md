@@ -41,10 +41,12 @@ Containerfile.rootfs           Runtime image layered on top of official rootfs
 context/common/                Shared UI entrypoint
 context/common/lab-overlay/    Device shell wrapper served by the UI container
 config/device-shell.json       Runtime-editable shell overlay coordinates
+config/key-map.json            Runtime-editable shell button hit areas and key map
 scripts/                       Local Apple container build/run helpers
 assets/flipperone-protopie/    Extracted ProtoPie device shell reference assets
 upstream/                      Official repositories tracked as submodules
 docs/research-notes.md         Notes about repository choice and scope
+docs/key-mapping.md            MCU, kernel, and fake UI key mapping notes
 artifacts/                     Generated rootfs tarballs, ignored by Git
 .build/                        Temporary build contexts, ignored by Git
 ```
@@ -137,6 +139,7 @@ The run scripts bind-mount these host paths into the container:
 
 ```text
 config/device-shell.json
+config/key-map.json
 assets/flipperone-protopie/
 ```
 
@@ -155,6 +158,16 @@ Key fields:
 ```
 
 Set `"enabled": false` to jump straight to the raw UI. Replace `assets/flipperone-protopie/flipperone-shell-overlay.png` or point `overlayImage` at another file under `/lab-assets/protopie/` to test another shell asset without rebuilding.
+
+Button hit areas and browser key dispatch are stored in:
+
+```text
+config/key-map.json
+```
+
+The current extracted mapping has 13 physical inputs. It is traced through MCU firmware bits, the Linux input driver, and the current `fake-flipctl2` browser key map in `docs/key-mapping.md`.
+
+Set `"debugHitAreas": true` in `config/key-map.json`, refresh the UI, then adjust `hitArea` rectangles to tune clickable shell buttons.
 
 Rebuild only when changing files under `context/common/lab-overlay/`, `context/common/flipper-ui-entrypoint.sh`, or the container files.
 

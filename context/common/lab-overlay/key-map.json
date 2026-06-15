@@ -1,0 +1,169 @@
+{
+  "enabled": true,
+  "debugHitAreas": false,
+  "overlaySize": {
+    "width": 2622,
+    "height": 1206
+  },
+  "sources": {
+    "mcuFirmware": "flipperone-mcu-firmware dev a6bee37",
+    "linuxKernel": "flipper-linux-kernel flipper-devel 0a148c9",
+    "uiRuntime": "upstream/flipperone-testing fake-flipctl2/js/input.js e29fe86"
+  },
+  "buttons": [
+    {
+      "id": "ptt",
+      "label": "PTT",
+      "firmwareKey": "InputKeyPtt",
+      "firmwareBit": 12,
+      "kernelName": "FO_BTN_PTT",
+      "linuxKey": "KEY_A",
+      "browserKey": "a",
+      "uiAction": "ptt",
+      "hitArea": { "x": 350, "y": 515, "width": 380, "height": 235 }
+    },
+    {
+      "id": "up",
+      "label": "Up",
+      "firmwareKey": "InputKeyUp",
+      "firmwareBit": 11,
+      "kernelName": "FO_BTN_UP",
+      "linuxKey": "KEY_UP",
+      "browserKey": "ArrowUp",
+      "uiAction": "up",
+      "aliases": ["i"],
+      "hitArea": { "x": 2030, "y": 350, "width": 175, "height": 135 }
+    },
+    {
+      "id": "left",
+      "label": "Left",
+      "firmwareKey": "InputKeyLeft",
+      "firmwareBit": 10,
+      "kernelName": "FO_BTN_LEFT",
+      "linuxKey": "KEY_LEFT",
+      "browserKey": "ArrowLeft",
+      "uiAction": "left",
+      "aliases": ["j"],
+      "hitArea": { "x": 1896, "y": 475, "width": 160, "height": 150 }
+    },
+    {
+      "id": "ok",
+      "label": "OK",
+      "firmwareKey": "InputKeyOk",
+      "firmwareBit": 9,
+      "kernelName": "FO_BTN_CENTER",
+      "linuxKey": "KEY_ENTER",
+      "browserKey": "Enter",
+      "uiAction": "ok",
+      "aliases": ["k"],
+      "hitArea": { "x": 2045, "y": 454, "width": 155, "height": 155 }
+    },
+    {
+      "id": "right",
+      "label": "Right",
+      "firmwareKey": "InputKeyRight",
+      "firmwareBit": 8,
+      "kernelName": "FO_BTN_RIGHT",
+      "linuxKey": "KEY_RIGHT",
+      "browserKey": "ArrowRight",
+      "uiAction": "right",
+      "aliases": ["l"],
+      "hitArea": { "x": 2178, "y": 475, "width": 160, "height": 150 }
+    },
+    {
+      "id": "down",
+      "label": "Down",
+      "firmwareKey": "InputKeyDown",
+      "firmwareBit": 7,
+      "kernelName": "FO_BTN_DOWN",
+      "linuxKey": "KEY_DOWN",
+      "browserKey": "ArrowDown",
+      "uiAction": "down",
+      "aliases": ["m"],
+      "hitArea": { "x": 2030, "y": 610, "width": 175, "height": 140 }
+    },
+    {
+      "id": "app-switch",
+      "label": "App Switch",
+      "firmwareKey": "InputKeySw",
+      "firmwareBit": 5,
+      "kernelName": "FO_BTN_APPSELECT",
+      "linuxKey": "KEY_TAB",
+      "browserKey": "Tab",
+      "uiAction": "appsw",
+      "aliases": ["h"],
+      "hitArea": { "x": 1875, "y": 705, "width": 165, "height": 115 }
+    },
+    {
+      "id": "back",
+      "label": "Back",
+      "firmwareKey": "InputKeyBack",
+      "firmwareBit": 6,
+      "kernelName": "FO_BTN_BACK",
+      "linuxKey": "KEY_BACKSPACE",
+      "browserKey": "Backspace",
+      "uiAction": "back",
+      "aliases": ["n", "Escape"],
+      "hitArea": { "x": 2258, "y": 724, "width": 165, "height": 160 }
+    },
+    {
+      "id": "key1-escape",
+      "label": "Escape",
+      "firmwareKey": "InputKey1",
+      "firmwareBit": 1,
+      "kernelName": "FO_BTN_ESCAPE",
+      "linuxKey": "KEY_Z",
+      "browserKey": "z",
+      "uiAction": "esc",
+      "hitArea": { "x": 890, "y": 842, "width": 160, "height": 70 }
+    },
+    {
+      "id": "key2-view",
+      "label": "View",
+      "firmwareKey": "InputKey2",
+      "firmwareBit": 0,
+      "kernelName": "FO_BTN_VIEW",
+      "linuxKey": "KEY_X",
+      "browserKey": "x",
+      "uiAction": "edit",
+      "kernelAction": "view",
+      "notes": "Current fake-flipctl2 maps x to edit, while the kernel driver names the same physical key View.",
+      "hitArea": { "x": 1070, "y": 842, "width": 160, "height": 70 }
+    },
+    {
+      "id": "key3-power",
+      "label": "Power",
+      "firmwareKey": "InputKey3",
+      "firmwareBit": 2,
+      "kernelName": "FO_BTN_POWER",
+      "linuxKey": "KEY_C",
+      "browserKey": "c",
+      "uiAction": "power",
+      "hitArea": { "x": 1250, "y": 842, "width": 160, "height": 70 }
+    },
+    {
+      "id": "key4-edit",
+      "label": "Edit",
+      "firmwareKey": "InputKey4",
+      "firmwareBit": 3,
+      "kernelName": "FO_BTN_EDIT",
+      "linuxKey": "KEY_V",
+      "browserKey": "v",
+      "uiAction": "del",
+      "kernelAction": "edit",
+      "notes": "Current fake-flipctl2 maps v to del, while the kernel driver names the same physical key Edit.",
+      "hitArea": { "x": 1430, "y": 842, "width": 160, "height": 70 }
+    },
+    {
+      "id": "key5-run",
+      "label": "Run",
+      "firmwareKey": "InputKey5",
+      "firmwareBit": 4,
+      "kernelName": "FO_BTN_RUN",
+      "linuxKey": "KEY_B",
+      "browserKey": "b",
+      "uiAction": "run",
+      "hitArea": { "x": 1610, "y": 842, "width": 160, "height": 70 }
+    }
+  ]
+}

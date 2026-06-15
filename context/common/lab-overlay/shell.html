@@ -50,6 +50,38 @@
             pointer-events: none;
             z-index: 2;
         }
+
+        .key-hotspot {
+            position: absolute;
+            z-index: 3;
+            display: block;
+            padding: 0;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: transparent;
+            appearance: none;
+            cursor: pointer;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .key-hotspot:focus-visible {
+            outline: 2px solid rgba(255, 145, 60, 0.85);
+            outline-offset: 2px;
+        }
+
+        html[data-hotspot-debug="1"] .key-hotspot {
+            border: 2px solid rgba(255, 145, 60, 0.85);
+            background: rgba(255, 145, 60, 0.18);
+            color: #fff;
+            font: 12px/1.2 system-ui, sans-serif;
+            text-shadow: 0 1px 2px #000;
+        }
+
+        html[data-hotspot-debug="1"] .key-hotspot[data-pressed="1"] {
+            background: rgba(255, 145, 60, 0.38);
+        }
     </style>
 </head>
 <body>
@@ -72,6 +104,7 @@
                 fit: { viewportScale: 0.98, maxWidth: '100vw', maxHeight: '100vh' },
                 background: '#000000'
             };
+            var heldKeys = {};
 
             function mergeConfig(config) {
                 config = config || {};
@@ -125,6 +158,93 @@
                 } catch (e) {}
             }
 
+            function sendFrameKey(key, type) {
+                var frame = document.getElementById('screen-frame');
+                if (!key || !frame || !frame.contentWindow) return;
+
+                try {
+                    var event = new frame.contentWindow.KeyboardEvent(type, {
+                        key: key,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    frame.contentWindow.document.dispatchEvent(event);
+                } catch (e) {}
+            }
+
+            function releaseHeldKeys() {
+                Object.keys(heldKeys).forEach(function(key) {
+                    sendFrameKey(key, 'keyup');
+                    heldKeys[key] = false;
+                });
+            }
+
+            function clearHotspots() {
+                Array.prototype.forEach.call(document.querySelectorAll('.key-hotspot'), function(node) {
+                    node.remove();
+                });
+            }
+
+            function applyKeyMap(rawKeyMap, shellConfig) {
+                clearHotspots();
+
+                var keyMap = rawKeyMap || {};
+                if (keyMap.enabled === false || !Array.isArray(keyMap.buttons)) {
+                    document.documentElement.dataset.hotspotDebug = '0';
+                    return;
+                }
+
+                var shell = document.getElementById('shell');
+                var mapSize = Object.assign({}, shellConfig.overlaySize || defaults.overlaySize, keyMap.overlaySize || {});
+                var shellWidth = Number(mapSize.width) || defaults.overlaySize.width;
+                var shellHeight = Number(mapSize.height) || defaults.overlaySize.height;
+
+                document.documentElement.dataset.hotspotDebug = keyMap.debugHitAreas ? '1' : '0';
+
+                keyMap.buttons.forEach(function(button) {
+                    if (!button || !button.browserKey || !button.hitArea) return;
+
+                    var area = button.hitArea;
+                    var hotspot = document.createElement('button');
+                    hotspot.type = 'button';
+                    hotspot.className = 'key-hotspot';
+                    hotspot.title = button.label || button.id || button.browserKey;
+                    hotspot.setAttribute('aria-label', hotspot.title);
+                    hotspot.textContent = button.label || button.id || '';
+                    hotspot.style.left = ((Number(area.x) || 0) / shellWidth * 100) + '%';
+                    hotspot.style.top = ((Number(area.y) || 0) / shellHeight * 100) + '%';
+                    hotspot.style.width = ((Number(area.width) || 0) / shellWidth * 100) + '%';
+                    hotspot.style.height = ((Number(area.height) || 0) / shellHeight * 100) + '%';
+
+                    function press(event) {
+                        event.preventDefault();
+                        if (heldKeys[button.browserKey]) return;
+                        try {
+                            if (event.pointerId !== undefined) hotspot.setPointerCapture(event.pointerId);
+                        } catch (e) {}
+                        heldKeys[button.browserKey] = true;
+                        hotspot.dataset.pressed = '1';
+                        focusFrame();
+                        sendFrameKey(button.browserKey, 'keydown');
+                    }
+
+                    function release(event) {
+                        if (event) event.preventDefault();
+                        if (!heldKeys[button.browserKey]) return;
+                        heldKeys[button.browserKey] = false;
+                        hotspot.dataset.pressed = '0';
+                        sendFrameKey(button.browserKey, 'keyup');
+                        focusFrame();
+                    }
+
+                    hotspot.addEventListener('pointerdown', press);
+                    hotspot.addEventListener('pointerup', release);
+                    hotspot.addEventListener('pointercancel', release);
+                    hotspot.addEventListener('lostpointercapture', release);
+                    shell.appendChild(hotspot);
+                });
+            }
+
             function applyConfig(rawConfig) {
                 var config = mergeConfig(rawConfig);
                 if (!config.enabled) {
@@ -153,7 +273,18 @@
                 frame.addEventListener('load', focusFrame);
                 window.addEventListener('click', focusFrame);
                 focusFrame();
+
+                fetch('/lab-overlay/key-map.json?cache=' + Date.now(), { cache: 'no-store' })
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('key-map.json: ' + response.status);
+                        return response.json();
+                    })
+                    .then(function(keyMap) { applyKeyMap(keyMap, config); })
+                    .catch(function() { applyKeyMap(null, config); });
             }
+
+            window.addEventListener('blur', releaseHeldKeys);
+            window.addEventListener('pagehide', releaseHeldKeys);
 
             fetch('/lab-overlay/device-shell.json?cache=' + Date.now(), { cache: 'no-store' })
                 .then(function(response) {

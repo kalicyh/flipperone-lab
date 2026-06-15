@@ -20,3 +20,4 @@ container run \
 printf 'UI:      http://127.0.0.1:8898\n'
 printf 'Raw UI:  http://127.0.0.1:8898/__flipper_ui.html\n'
 printf 'Config:  %s/config/device-shell.json\n' "${ROOT_DIR}"
+printf 'Keys:    %s/config/key-map.json\n' "${ROOT_DIR}"

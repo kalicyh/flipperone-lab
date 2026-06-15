@@ -48,6 +48,11 @@ prepare_device_shell() {
     else
         ln -sfn "${overlay_dir}/device-shell.json" "${ui_dir}/lab-overlay/device-shell.json"
     fi
+    if [ -f "${overlay_config_dir}/key-map.json" ]; then
+        ln -sfn "${overlay_config_dir}/key-map.json" "${ui_dir}/lab-overlay/key-map.json"
+    else
+        ln -sfn "${overlay_dir}/key-map.json" "${ui_dir}/lab-overlay/key-map.json"
+    fi
     ln -sfn "${lab_assets_dir}" "${ui_dir}/lab-assets"
 
     cp "${overlay_dir}/shell.html" "${ui_dir}/index.html"
