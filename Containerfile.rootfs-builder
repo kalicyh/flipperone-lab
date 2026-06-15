@@ -28,7 +28,7 @@ RUN dpkg --add-architecture arm64 \
  && rm -rf /var/lib/apt/lists/* /root/go /root/.cache/go-build
 
 WORKDIR /rk3576-linux-build
-COPY src/flipperone-linux-build-scripts/ /rk3576-linux-build/
+COPY upstream/flipperone-linux-build-scripts/ /rk3576-linux-build/
 RUN sed -i 's/DEBOS="debos"/DEBOS="debos --disable-fakemachine"/' /rk3576-linux-build/build-ospack.sh
 
 ENTRYPOINT ["/bin/bash"]

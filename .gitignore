@@ -1,5 +1,4 @@
 artifacts/
-src/
 .build/
 .DS_Store
 *.log

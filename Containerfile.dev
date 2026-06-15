@@ -24,8 +24,8 @@ RUN apt-get update \
     xvfb \
  && rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth=1 -b dev https://github.com/flipperdevices/flipperone-testing /flipperone-testing \
- && ln -sfn /flipperone-testing/fake-flipctl2 /flipperone-testing/active-flipctl
+COPY upstream/flipperone-testing/ /flipperone-testing/
+RUN ln -sfn /flipperone-testing/fake-flipctl2 /flipperone-testing/active-flipctl
 
 COPY context/common/flipper-vnc-entrypoint.sh /usr/local/bin/flipper-vnc-entrypoint
 RUN chmod +x /usr/local/bin/flipper-vnc-entrypoint

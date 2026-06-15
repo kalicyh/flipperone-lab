@@ -2,13 +2,47 @@
 
 These notes capture the repository choices behind this lab.
 
-## Flipper One Repository Roles
+## Upstream Roles
 
 - `flipperone-testing` is the fastest entry point for UI access because it includes `fake-flipctl2`, which can run without real Flipper One hardware.
-- `flipperone-linux-build-scripts` is the closest public source for building the Linux userspace rootfs. This is the base of Phase 2.
-- `flipper-linux-kernel`, `u-boot`, and `rkbin` are board boot components. They matter for real hardware bring-up, but they are not enough to make a useful macOS container target.
-- `flipperone-mcu-firmware`, `flipperone-hardware`, and `flipperone-mechanics` are outside the container scope.
+- `flipperone-linux-build-scripts` is the closest public source for building the Linux userspace rootfs.
+- `flipper-linux-kernel`, `u-boot`, and `rkbin` are board boot components. They matter for real hardware bring-up, but they are not enough to make a useful container target.
+- `flipperone-mcu-firmware`, `flipperone-hardware`, and `flipperone-mechanics` are outside this container scope.
 - `flipctl` and `rkbin` are referenced by upstream materials but are not public at the time this lab was built.
+
+## Why Submodules
+
+The public Flipper One repositories are changing quickly. Submodules make this lab more reproducible because the main repository records exact upstream commits while still allowing explicit updates.
+
+Current submodules:
+
+```text
+upstream/flipperone-testing
+upstream/flipperone-linux-build-scripts
+```
+
+Use this to refresh the checked-out submodules to the recorded commits:
+
+```bash
+git submodule update --init --recursive
+```
+
+Use this only when intentionally updating to newer upstream commits:
+
+```bash
+git submodule update --remote --merge
+```
+
+Then commit the changed submodule pointers.
+
+## Image Split
+
+The repository builds two OCI images:
+
+- `flipperone-dev`: quick development/UI image based on Debian plus `flipperone-testing`.
+- `flipperone-rootfs`: userspace image based on an official Flipper One Debian rootfs generated from `flipperone-linux-build-scripts`.
+
+The names avoid `official` because these images are not published by Flipper Devices.
 
 ## Container Scope
 
@@ -16,37 +50,8 @@ Apple `container` is useful here for ARM64 Linux userspace access. It is not a f
 
 The practical split is:
 
-- Use `flipperone-testing` to get a quick VNC-accessible UI.
-- Use `flipperone-linux-build-scripts` to build the official Debian rootfs.
-- Add a VNC/noVNC layer to make that userspace accessible from macOS.
-
-## Phase 1
-
-Phase 1 clones `flipperone-testing` directly in the image and runs:
-
-```text
-/flipperone-testing/fake-flipctl2
-```
-
-This is intentionally quick and does not depend on the official rootfs build.
-
-## Phase 2
-
-Phase 2 builds:
-
-```text
-artifacts/debian-ospack.tar.gz
-```
-
-Then it creates a runtime image by adding that rootfs and installing the VNC/noVNC access packages.
-
-The rootfs build needs extra container capabilities for `debos` and `systemd-nspawn`, so the builder script runs with:
-
-```text
---cap-add ALL
-```
-
-The final runtime containers do not require that flag.
+- Use `flipperone-dev` to get a quick VNC-accessible UI.
+- Use `flipperone-rootfs` to inspect a userspace that is closer to the Flipper One Linux rootfs.
 
 ## Known Limits
 

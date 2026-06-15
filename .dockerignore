@@ -1,5 +1,8 @@
+.git
 .git/
+**/.git
+**/.git/
+.gitmodules
 .build/
 artifacts/
-src/
 .DS_Store

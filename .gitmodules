@@ -1,0 +1,8 @@
+[submodule "upstream/flipperone-testing"]
+	path = upstream/flipperone-testing
+	url = https://github.com/flipperdevices/flipperone-testing
+	branch = dev
+[submodule "upstream/flipperone-linux-build-scripts"]
+	path = upstream/flipperone-linux-build-scripts
+	url = https://github.com/flipperdevices/flipperone-linux-build-scripts
+	branch = dev

@@ -3,11 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ARTIFACT_DIR="${ROOT_DIR}/artifacts"
-SRC_DIR="${ROOT_DIR}/src/flipperone-linux-build-scripts"
-BUILD_CONTEXT="${ROOT_DIR}/.build/official-builder-context"
+SRC_DIR="${ROOT_DIR}/upstream/flipperone-linux-build-scripts"
+BUILD_CONTEXT="${ROOT_DIR}/.build/rootfs-builder-context"
 REQUIRED_FREE_GB="${REQUIRED_FREE_GB:-30}"
 
-mkdir -p "${ARTIFACT_DIR}" "${ROOT_DIR}/src"
+mkdir -p "${ARTIFACT_DIR}"
 
 free_kb="$(df -Pk "${ROOT_DIR}" | awk 'NR == 2 {print $4}')"
 required_kb="$((REQUIRED_FREE_GB * 1024 * 1024))"
@@ -17,21 +17,12 @@ if [ "${free_kb}" -lt "${required_kb}" ]; then
     exit 1
 fi
 
-if [ ! -d "${SRC_DIR}/.git" ]; then
-    git clone --depth=1 -b dev https://github.com/flipperdevices/flipperone-linux-build-scripts "${SRC_DIR}"
-fi
-
-cd "${SRC_DIR}"
-git fetch --depth=1 origin dev
-git checkout dev
-git reset --hard origin/dev
-
-cd "${ROOT_DIR}"
+git submodule update --init --recursive upstream/flipperone-linux-build-scripts
 
 rm -rf "${BUILD_CONTEXT}"
-mkdir -p "${BUILD_CONTEXT}/src/flipperone-linux-build-scripts"
-cp "${ROOT_DIR}/Containerfile.official-builder" "${BUILD_CONTEXT}/Dockerfile"
-git -C "${SRC_DIR}" archive --format=tar HEAD | tar -xf - -C "${BUILD_CONTEXT}/src/flipperone-linux-build-scripts"
+mkdir -p "${BUILD_CONTEXT}/upstream/flipperone-linux-build-scripts"
+cp "${ROOT_DIR}/Containerfile.rootfs-builder" "${BUILD_CONTEXT}/Dockerfile"
+git -C "${SRC_DIR}" archive --format=tar HEAD | tar -xf - -C "${BUILD_CONTEXT}/upstream/flipperone-linux-build-scripts"
 
 container builder start --memory 12g --cpus 6 >/dev/null || true
 
@@ -39,7 +30,7 @@ container build \
     --platform linux/arm64 \
     --memory 12g \
     --cpus 6 \
-    --tag flipperone-official-builder:latest \
+    --tag flipperone-rootfs-builder:latest \
     "${BUILD_CONTEXT}"
 
 container run \
@@ -49,7 +40,7 @@ container run \
     --cpus 6 \
     --volume "${ARTIFACT_DIR}:/artifacts" \
     --entrypoint /bin/bash \
-    flipperone-official-builder:latest \
+    flipperone-rootfs-builder:latest \
     -lc 'cd /rk3576-linux-build && IMG_OUT=/artifacts ./build-ospack.sh'
 
 test -f "${ARTIFACT_DIR}/debian-ospack.tar.gz"
