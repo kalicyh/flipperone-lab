@@ -34,6 +34,7 @@ prepare_device_shell() {
     awk '
         /<\/head>/ && !done {
             print "    <link rel=\"stylesheet\" href=\"/lab-overlay/flipper-ui-fit.css\">";
+            print "    <script src=\"/lab-overlay/lab-browser-runtime.js\"></script>";
             done = 1
         }
         { print }
@@ -43,6 +44,7 @@ prepare_device_shell() {
     mkdir -p "${ui_dir}/lab-overlay"
 
     ln -sfn "${overlay_dir}/flipper-ui-fit.css" "${ui_dir}/lab-overlay/flipper-ui-fit.css"
+    ln -sfn "${overlay_dir}/lab-browser-runtime.js" "${ui_dir}/lab-overlay/lab-browser-runtime.js"
     if [ -f "${overlay_config_dir}/device-shell.json" ]; then
         ln -sfn "${overlay_config_dir}/device-shell.json" "${ui_dir}/lab-overlay/device-shell.json"
     else
@@ -64,8 +66,13 @@ if [ -d /flipperone-testing/active-flipctl ]; then
     prepare_device_shell /flipperone-testing/active-flipctl
     log "starting fake FlipCTL on port ${FLIPPER_UI_PORT}"
     (
+        overlay_dir="${FLIPPER_OVERLAY_DIR:-/opt/flipperone-lab-overlay}"
+        node_args=()
+        if [ -f "${overlay_dir}/lab-runtime-preload.js" ]; then
+            node_args=(--require "${overlay_dir}/lab-runtime-preload.js")
+        fi
         cd /flipperone-testing/active-flipctl
-        PORT="${FLIPPER_UI_PORT}" node server.js
+        FLIPPER_LAB_MODE=1 PORT="${FLIPPER_UI_PORT}" node "${node_args[@]}" server.js
     ) >/tmp/fake-flipctl.log 2>&1 &
 else
     log "warning: /flipperone-testing/active-flipctl not found"

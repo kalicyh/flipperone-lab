@@ -171,6 +171,40 @@ Set `"debugHitAreas": true` in `config/key-map.json`, refresh the UI, then adjus
 
 Rebuild only when changing files under `context/common/lab-overlay/`, `context/common/flipper-ui-entrypoint.sh`, or the container files.
 
+## API Monitor and Hooks
+
+The lab overlay adds an `API` floating button to the browser UI. Click it to open a bottom panel for system logs and hook editing.
+
+The `Logs` tab shows the tail of the container-side fake FlipCTL log:
+
+```text
+/tmp/fake-flipctl.log
+```
+
+The `Hooks` tab can override selected device-status endpoints without rebuilding the image. The built-in hooks are enabled by default. Use `Hook All` or `Unhook All` inside the `Hooks` tab to toggle all configured hooks at once. Hook configuration is stored in browser `localStorage`, so edits apply after clicking `Save` and survive page refreshes in the same browser profile.
+
+Default editable hooks include:
+
+```text
+GET  /api/power
+GET  /api/battery/temp
+GET  /api/power/usage
+GET  /api/wifi
+GET  /api/wifi/scan
+GET  /api/wifi/power
+POST /api/wifi/power
+POST /api/wifi/connect
+GET  /api/wifi/saved
+```
+
+Hook matching is by HTTP method and path. Query strings are ignored unless the hook path itself contains a query string.
+
+Audio playback is also handled by the browser-side lab runtime. The upstream fake UI normally tries to play audio inside Linux with SoX and ALSA, but the Apple container runtime does not expose `/dev/snd` by default. The lab runtime intercepts sound playback calls and plays files from:
+
+```text
+http://127.0.0.1:8899/lab-audio/<filename>
+```
+
 ## Runtime Commands
 
 Show container status:

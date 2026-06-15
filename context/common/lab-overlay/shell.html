@@ -90,6 +90,7 @@
         <img id="shell-overlay" alt="" src="/lab-assets/protopie/flipperone-shell-overlay.png">
     </main>
 
+    <script src="/lab-overlay/lab-browser-runtime.js"></script>
     <script>
         (function() {
             'use strict';
@@ -156,6 +157,15 @@
                     frame.focus();
                     if (frame.contentWindow) frame.contentWindow.focus();
                 } catch (e) {}
+            }
+
+            function focusFrameFromShellClick(event) {
+                var target = event && event.target;
+                if (target && target.closest
+                    && target.closest('#flab-api-panel, #flab-api-toggle')) {
+                    return;
+                }
+                focusFrame();
             }
 
             function sendFrameKey(key, type) {
@@ -271,7 +281,7 @@
                 layoutShell(config);
                 window.addEventListener('resize', function() { layoutShell(config); });
                 frame.addEventListener('load', focusFrame);
-                window.addEventListener('click', focusFrame);
+                window.addEventListener('click', focusFrameFromShellClick);
                 focusFrame();
 
                 fetch('/lab-overlay/key-map.json?cache=' + Date.now(), { cache: 'no-store' })
