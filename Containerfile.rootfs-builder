@@ -24,13 +24,14 @@ RUN dpkg --add-architecture arm64 \
     wget \
  && go install -v github.com/go-debos/debos/cmd/debos@latest \
  && install -m 755 /root/go/bin/debos /usr/local/bin/debos \
- && mv /usr/local/bin/debos /usr/local/bin/debos.real \
- && printf '#!/bin/sh\nexec /usr/local/bin/debos.real --disable-fakemachine "$@"\n' > /usr/local/bin/debos \
- && chmod +x /usr/local/bin/debos \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* /root/go /root/.cache/go-build
 
 WORKDIR /rk3576-linux-build
 COPY upstream/flipperone-linux-build-scripts/ /rk3576-linux-build/
+RUN awk '{ if ($0 ~ /^\$DEBOS --artifactdir=/) print "DEBOS=\"debos --disable-fakemachine\""; print }' \
+      /rk3576-linux-build/build-ospack.sh > /tmp/build-ospack.sh \
+ && mv /tmp/build-ospack.sh /rk3576-linux-build/build-ospack.sh \
+ && chmod +x /rk3576-linux-build/build-ospack.sh
 
 ENTRYPOINT ["/bin/bash"]

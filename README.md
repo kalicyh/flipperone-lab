@@ -148,7 +148,7 @@ The workflow at `.github/workflows/build-images.yml` builds and pushes both imag
 
 It uses `ubuntu-24.04-arm` so the images and rootfs are built natively for `linux/arm64`.
 
-The rootfs artifact step runs the builder container with `--privileged` because `debos` needs mount and tmpfs capabilities while building the rootfs. The builder image wraps `debos` with `--disable-fakemachine`; this avoids GitHub runner failures where a privileged container exposes `/dev/kvm` but does not provide `/lib/modules`. The final `flipperone-dev` and `flipperone-rootfs` runtime images do not need privileged mode.
+The rootfs artifact step runs the builder container with `--privileged` because `debos` needs mount and tmpfs capabilities while building the rootfs. The builder image patches `build-ospack.sh` to force `debos --disable-fakemachine`; this avoids GitHub runner failures where a privileged container exposes `/dev/kvm` or Docker metadata but does not provide a working fakemachine environment. The final `flipperone-dev` and `flipperone-rootfs` runtime images do not need privileged mode.
 
 Create a version release by pushing a tag:
 
