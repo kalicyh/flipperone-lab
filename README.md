@@ -9,6 +9,12 @@ The project builds two images:
 
 This is not full board emulation. It does not boot the RK3576 board kernel, U-Boot, MCU firmware, modem stack, Wi-Fi stack, M.2 devices, power supply interfaces, or other real Flipper One hardware. It is meant for userspace inspection and UI access.
 
+## Screenshots
+
+![Flipper One Lab network settings](assets/CleanShot%202026-06-16%20at%2007.58.41@2x.png)
+
+![Flipper One Lab running state overlay](assets/CleanShot%202026-06-16%20at%2007.59.49@2x.png)
+
 ## Image Names
 
 Local image names:
