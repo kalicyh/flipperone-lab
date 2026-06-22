@@ -679,7 +679,8 @@
         var style = document.createElement('style');
         style.id = 'flab-api-style';
         style.textContent = [
-            '.flab-version{position:fixed;left:8px;top:8px;z-index:2147483645;max-width:calc(100vw - 16px);padding:5px 7px;border:1px solid rgba(74,81,92,.9);background:rgba(12,16,20,.78);color:#dce3ea;border-radius:5px;font:10px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none}',
+            '.flab-version{position:fixed;left:8px;top:8px;z-index:2147483645;max-width:calc(100vw - 16px);padding:5px 7px;border:1px solid rgba(74,81,92,.9);background:rgba(12,16,20,.78);color:#dce3ea;border-radius:5px;font:10px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}',
+            '.flab-version a{color:#9fd0ff;text-decoration:none}.flab-version a:hover{text-decoration:underline}',
             '.flab-api-toggle{position:fixed;right:16px;bottom:16px;z-index:2147483647;border:1px solid #4a515c;background:#1d232c;color:#f2f5f8;border-radius:6px;padding:8px 10px;font:600 12px system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer}',
             '.flab-api-toggle[data-open="1"]{bottom:calc(38vh + 16px);background:#2c3642}',
             '.flab-api-panel{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:2147483646;background:#101418;color:#dce3ea;border-top:1px solid #323943;display:none;flex-direction:column;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-shadow:0 -12px 32px rgba(0,0,0,.45)}',
@@ -751,12 +752,28 @@
 
     function renderVersionInfo(info) {
         if (!isTopWindow || !info) return;
-        var testing = String(info['flipperone-testing'] || '').trim();
-        var buildScripts = String(info['flipperone-linux-build-scripts'] || '').trim();
-        var lines = [];
-        if (testing && testing !== 'unknown') lines.push('testing ' + testing);
-        if (buildScripts && buildScripts !== 'unknown') lines.push('build    ' + buildScripts);
-        if (!lines.length) return;
+        var repos = [
+            {
+                key: 'flipperone-testing',
+                label: 'flipperdevices/flipperone-testing',
+                url: 'https://github.com/flipperdevices/flipperone-testing'
+            },
+            {
+                key: 'flipperone-linux-build-scripts',
+                label: 'flipperdevices/flipperone-linux-build-scripts',
+                url: 'https://github.com/flipperdevices/flipperone-linux-build-scripts'
+            }
+        ];
+        var items = repos.map(function(repo) {
+            var sha = String(info[repo.key] || '').trim();
+            if (!sha || sha === 'unknown') return null;
+            return {
+                label: repo.label,
+                sha: sha.slice(0, 7),
+                url: repo.url + '/commit/' + encodeURIComponent(sha)
+            };
+        }).filter(Boolean);
+        if (!items.length) return;
 
         var badge = document.getElementById('flab-version');
         if (!badge) {
@@ -765,7 +782,17 @@
             badge.className = 'flab-version';
             document.body.appendChild(badge);
         }
-        badge.textContent = lines.join('\n');
+        badge.textContent = '';
+        items.forEach(function(item, index) {
+            var link = document.createElement('a');
+            link.href = item.url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = item.label;
+            badge.appendChild(link);
+            badge.appendChild(document.createTextNode(' ' + item.sha));
+            if (index < items.length - 1) badge.appendChild(document.createElement('br'));
+        });
     }
 
     function loadVersionInfo() {
