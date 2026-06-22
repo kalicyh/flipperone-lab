@@ -45,6 +45,7 @@ prepare_device_shell() {
 
     ln -sfn "${overlay_dir}/flipper-ui-fit.css" "${ui_dir}/lab-overlay/flipper-ui-fit.css"
     ln -sfn "${overlay_dir}/lab-browser-runtime.js" "${ui_dir}/lab-overlay/lab-browser-runtime.js"
+    [ -f "${overlay_dir}/version.json" ] && ln -sfn "${overlay_dir}/version.json" "${ui_dir}/lab-overlay/version.json"
     if [ -f "${overlay_config_dir}/device-shell.json" ]; then
         ln -sfn "${overlay_config_dir}/device-shell.json" "${ui_dir}/lab-overlay/device-shell.json"
     else

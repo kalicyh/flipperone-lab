@@ -24,6 +24,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Upstream SHAs
+        id: upstream
+        run: |
+          echo "testing=$(git -C upstream/flipperone-testing rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+          echo "build_scripts=$(git -C upstream/flipperone-linux-build-scripts rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+
       - name: Image names
         id: image
         shell: bash
@@ -61,6 +67,9 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: ${{ steps.image.outputs.tags }}
+          build-args: |
+            FLIPPERONE_TESTING_SHA=${{ steps.upstream.outputs.testing }}
+            FLIPPERONE_BUILD_SCRIPTS_SHA=${{ steps.upstream.outputs.build_scripts }}
 
   build-rootfs:
     name: Build flipperone-rootfs
@@ -71,6 +80,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Upstream SHAs
+        id: upstream
+        run: |
+          echo "testing=$(git -C upstream/flipperone-testing rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+          echo "build_scripts=$(git -C upstream/flipperone-linux-build-scripts rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
 
       - name: Image names
         id: image
@@ -125,10 +140,12 @@ jobs:
       - name: Prepare rootfs image context
         run: |
           rm -rf .build/rootfs-image-context
-          mkdir -p .build/rootfs-image-context/artifacts .build/rootfs-image-context/context/common
+          mkdir -p .build/rootfs-image-context/artifacts .build/rootfs-image-context/context/common .build/rootfs-image-context/assets
           cp Containerfile.rootfs .build/rootfs-image-context/Dockerfile
           cp artifacts/debian-ospack.tar.gz .build/rootfs-image-context/artifacts/debian-ospack.tar.gz
           cp context/common/flipper-ui-entrypoint.sh .build/rootfs-image-context/context/common/flipper-ui-entrypoint.sh
+          cp -R context/common/lab-overlay .build/rootfs-image-context/context/common/lab-overlay
+          cp -R assets/flipperone-protopie .build/rootfs-image-context/assets/flipperone-protopie
 
       - name: Build and push flipperone-rootfs
         uses: docker/build-push-action@v6
@@ -138,3 +155,6 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: ${{ steps.image.outputs.tags }}
+          build-args: |
+            FLIPPERONE_TESTING_SHA=${{ steps.upstream.outputs.testing }}
+            FLIPPERONE_BUILD_SCRIPTS_SHA=${{ steps.upstream.outputs.build_scripts }}

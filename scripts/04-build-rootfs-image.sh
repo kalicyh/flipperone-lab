@@ -5,6 +5,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_CONTEXT="${ROOT_DIR}/.build/rootfs-image-context"
 cd "${ROOT_DIR}"
 
+git submodule update --init --recursive upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+FLIPPERONE_TESTING_SHA="$(git -C upstream/flipperone-testing rev-parse HEAD)"
+FLIPPERONE_BUILD_SCRIPTS_SHA="$(git -C upstream/flipperone-linux-build-scripts rev-parse HEAD)"
+
 container builder start --memory 8g --cpus 4 >/dev/null || true
 
 test -f artifacts/debian-ospack.tar.gz || {
@@ -24,5 +28,7 @@ container build \
     --platform linux/arm64 \
     --memory 8g \
     --cpus 4 \
+    --build-arg "FLIPPERONE_TESTING_SHA=${FLIPPERONE_TESTING_SHA}" \
+    --build-arg "FLIPPERONE_BUILD_SCRIPTS_SHA=${FLIPPERONE_BUILD_SCRIPTS_SHA}" \
     --tag flipperone-rootfs:latest \
     "${BUILD_CONTEXT}"

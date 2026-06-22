@@ -1,7 +1,12 @@
 FROM mirror.gcr.io/library/debian:trixie
 
+ARG FLIPPERONE_TESTING_SHA=unknown
+ARG FLIPPERONE_BUILD_SCRIPTS_SHA=unknown
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLIPPER_UI_PORT=8899
+ENV FLIPPERONE_TESTING_SHA=${FLIPPERONE_TESTING_SHA}
+ENV FLIPPERONE_BUILD_SCRIPTS_SHA=${FLIPPERONE_BUILD_SCRIPTS_SHA}
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -20,7 +25,10 @@ RUN ln -sfn /flipperone-testing/fake-flipctl2 /flipperone-testing/active-flipctl
 COPY context/common/flipper-ui-entrypoint.sh /usr/local/bin/flipper-ui-entrypoint
 COPY context/common/lab-overlay/ /opt/flipperone-lab-overlay/
 COPY assets/flipperone-protopie/ /opt/flipperone-lab-assets/protopie/
-RUN chmod +x /usr/local/bin/flipper-ui-entrypoint
+RUN chmod +x /usr/local/bin/flipper-ui-entrypoint \
+ && printf '{\n  "flipperone-testing": "%s",\n  "flipperone-linux-build-scripts": "%s"\n}\n' \
+      "${FLIPPERONE_TESTING_SHA}" "${FLIPPERONE_BUILD_SCRIPTS_SHA}" \
+      > /opt/flipperone-lab-overlay/version.json
 
 EXPOSE 8899
 

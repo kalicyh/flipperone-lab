@@ -20,9 +20,14 @@ EOF
 
 build_dev() {
     cd "${ROOT_DIR}"
-    git submodule update --init --recursive upstream/flipperone-testing
+    git submodule update --init --recursive upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+    local testing_sha build_scripts_sha
+    testing_sha="$(git -C upstream/flipperone-testing rev-parse HEAD)"
+    build_scripts_sha="$(git -C upstream/flipperone-linux-build-scripts rev-parse HEAD)"
     docker build \
         --platform "${PLATFORM}" \
+        --build-arg "FLIPPERONE_TESTING_SHA=${testing_sha}" \
+        --build-arg "FLIPPERONE_BUILD_SCRIPTS_SHA=${build_scripts_sha}" \
         --tag flipperone-dev:latest \
         --file Containerfile.dev \
         .
@@ -48,7 +53,10 @@ build_rootfs() {
 
     cd "${ROOT_DIR}"
     mkdir -p artifacts
-    git submodule update --init --recursive upstream/flipperone-linux-build-scripts
+    git submodule update --init --recursive upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+    local testing_sha build_scripts_sha
+    testing_sha="$(git -C upstream/flipperone-testing rev-parse HEAD)"
+    build_scripts_sha="$(git -C upstream/flipperone-linux-build-scripts rev-parse HEAD)"
 
     docker build \
         --platform "${PLATFORM}" \
@@ -76,6 +84,8 @@ build_rootfs() {
 
     docker build \
         --platform "${PLATFORM}" \
+        --build-arg "FLIPPERONE_TESTING_SHA=${testing_sha}" \
+        --build-arg "FLIPPERONE_BUILD_SCRIPTS_SHA=${build_scripts_sha}" \
         --tag flipperone-rootfs:latest \
         "${context}"
 }
