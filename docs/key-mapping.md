@@ -23,7 +23,7 @@ Current source snapshots used for this mapping:
 ```text
 flipperone-mcu-firmware dev a6bee37
 flipper-linux-kernel flipper-devel 0a148c9
-upstream/flipperone-testing fake-flipctl2/js/input.js e29fe86
+upstream/flipperone-testing fake-flipctl2/js/input.js 4a356de
 ```
 
 The MCU firmware and kernel snapshots were read from temporary clones under

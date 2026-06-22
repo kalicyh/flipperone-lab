@@ -8,7 +8,7 @@
   "sources": {
     "mcuFirmware": "flipperone-mcu-firmware dev a6bee37",
     "linuxKernel": "flipper-linux-kernel flipper-devel 0a148c9",
-    "uiRuntime": "upstream/flipperone-testing fake-flipctl2/js/input.js e29fe86"
+    "uiRuntime": "upstream/flipperone-testing fake-flipctl2/js/input.js 4a356de"
   },
   "buttons": [
     {

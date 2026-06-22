@@ -1,0 +1,47 @@
+name: Sync Upstream Submodules
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Beijing 02:00.
+    - cron: '0 18 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Configure Git
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Update upstream submodules
+        run: |
+          git pull --ff-only origin "${GITHUB_REF_NAME}"
+          git submodule update --init --remote \
+            upstream/flipperone-testing \
+            upstream/flipperone-linux-build-scripts
+
+      - name: Commit updates
+        run: |
+          if git diff --quiet -- upstream/flipperone-testing upstream/flipperone-linux-build-scripts; then
+            echo "No upstream updates."
+            exit 0
+          fi
+
+          git add upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+          testing_sha="$(git -C upstream/flipperone-testing rev-parse --short HEAD)"
+          build_sha="$(git -C upstream/flipperone-linux-build-scripts rev-parse --short HEAD)"
+          git commit -m "Update upstream submodules" \
+            -m "flipperone-testing: ${testing_sha}" \
+            -m "flipperone-linux-build-scripts: ${build_sha}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

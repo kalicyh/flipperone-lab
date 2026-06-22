@@ -261,6 +261,8 @@ The Docker helper uses `linux/arm64` by default. Override it with `DOCKER_PLATFO
 
 The workflow at `.github/workflows/build-images.yml` builds and pushes both images to GHCR on version tag pushes and manual runs.
 
+The workflow at `.github/workflows/sync_upstream.yml` checks the upstream `dev` branches every day and commits updated submodule pins when either repository moves.
+
 It uses `ubuntu-24.04-arm` so the images and rootfs are built natively for `linux/arm64`.
 
 The rootfs artifact step runs the builder container with `--privileged` because `debos` needs mount and tmpfs capabilities while building the rootfs. The builder image patches `build-ospack.sh` to force `debos --disable-fakemachine`; this avoids GitHub runner failures where a privileged container exposes `/dev/kvm` or Docker metadata but does not provide a working fakemachine environment. The final `flipperone-dev` and `flipperone-rootfs` runtime images do not need privileged mode.
@@ -303,6 +305,13 @@ If Apple `container` has no ARM64 kernel installed, `00-start-container-system.s
 - [flipper-linux-kernel](https://github.com/flipperdevices/flipper-linux-kernel)
 - [u-boot](https://github.com/flipperdevices/u-boot)
 - [flipperone-mcu-firmware](https://github.com/flipperdevices/flipperone-mcu-firmware)
+
+Manually refresh the pinned upstream repos with:
+
+```bash
+git submodule update --init --remote upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+git add upstream/flipperone-testing upstream/flipperone-linux-build-scripts
+```
 
 ## License
 
