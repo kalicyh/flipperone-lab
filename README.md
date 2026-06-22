@@ -296,7 +296,11 @@ If the UI does not load, check logs:
 ```bash
 container logs flipperone-dev
 container logs flipperone-rootfs
+docker logs flipperone-dev
+docker logs flipperone-rootfs
 ```
+
+Fresh containers refresh missing apt package metadata during startup so runtime install flows, such as Internet Radio installing `mpg123`, can use `apt-get install`.
 
 If Apple `container` has no ARM64 kernel installed, `00-start-container-system.sh` attempts the recommended kernel install. If that still fails, follow the Apple `container` kernel setup documentation for your installed version.
 

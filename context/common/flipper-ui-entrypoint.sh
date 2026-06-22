@@ -13,6 +13,18 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+prepare_apt_metadata() {
+    command -v apt-get >/dev/null 2>&1 || return
+    if find /var/lib/apt/lists -type f -name '*Packages*' -print -quit 2>/dev/null | grep -q .; then
+        return
+    fi
+
+    log "refreshing apt package metadata"
+    if ! apt-get update >/tmp/apt-get-update.log 2>&1; then
+        log "warning: apt-get update failed; package installs may fail"
+    fi
+}
+
 prepare_device_shell() {
     local ui_dir="$1"
     local overlay_dir="${FLIPPER_OVERLAY_DIR:-/opt/flipperone-lab-overlay}"
@@ -62,6 +74,7 @@ prepare_device_shell() {
 }
 
 touch /tmp/fake-flipctl.log
+prepare_apt_metadata
 
 if [ -d /flipperone-testing/active-flipctl ]; then
     prepare_device_shell /flipperone-testing/active-flipctl
